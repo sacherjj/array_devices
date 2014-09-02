@@ -564,6 +564,9 @@ class Array3710(object):
         self.__set_buffer_start(self.CMD_START_PROG)
         self.__set_checksum()
         self.__send_buffer()
+        # Turn on Load if not on
+        if not self.load_on:
+            self.load_on = True
         self.update_status()
 
     def stop_program(self):
@@ -574,6 +577,8 @@ class Array3710(object):
         self.__set_buffer_start(self.CMD_STOP_PROG)
         self.__set_checksum()
         self.__send_buffer()
+        if self.load_on:
+            self.load_on = False
         self.update_status()
 
 
@@ -664,31 +669,36 @@ class SerialTester(object):
 if __name__ == '__main__':
 
     import time
-#import serial
-#    serial_conn = serial.Serial('COM4', 19200, timeout=1)
-    serial_conn = SerialTester('COM4', 19200, timeout=1)
+    import serial
+    serial_conn = serial.Serial('COM4', 19200, timeout=1)
+#    serial_conn = SerialTester('COM4', 19200, timeout=1)
     load = Array3710(0, serial_conn)
     load.remote_control = True
     load.max_power = 12
     load.set_load_current(2)
+    print("Load Current: 2")
     load.load_on = True
+    print("Load On")
     load.update_status()
-    load.load_on = False
-
-    prog = Array3710Program(1, 0)
-    prog.add_step(1, 1)
-    prog.add_step(2, 2)
-    prog.add_step(3, 4)
-    prog.add_step(4, 8)
-    prog.add_step(5, 16)
-    prog.add_step(6, 32)
-    prog.add_step(7, 64)
-    prog.add_step(8, 128)
-    prog.add_step(9, 256)
-    prog.add_step(10, 512)
-    load.set_program_sequence(prog)
-    load.start_program()
     time.sleep(2)
+    load.load_on = False
+    print("Load Off")
+
+    print("Loading Program")
+    prog = Array3710Program(Array3710Program.PROG_TYPE_RESISTANCE, Array3710Program.RUN_ONCE)
+    resistances = (500, 450, 400, 350, 300, 250, 200, 150, 100, 50)
+    for resist in resistances:
+        prog.add_step(resist, 10)
+    load.set_program_sequence(prog)
+    print("Running Program")
+    print("Expected 10 second delays and seeing only 7 second delays.  Odd.")
+    load.load_on = True
+    load.start_program()
+    for resist in resistances:
+        print("{} ohms".format(resist))
+        for i in range(7):
+            print i+1
+            time.sleep(1)
     load.stop_program()
 # 11th step error
 #     prog.add_step(110, 110)
