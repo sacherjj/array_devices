@@ -1,9 +1,17 @@
-array3710
+array_devices
 =========
 
-Python Interface to Array 3710A DC Electronic Load
+Python Interface to currently only the Array 3710A DC Electronic Load
+This load is also sold under Gossen, Tekpower, Circuit Specialists with same 3710A model number.
 
 All capabilities in programming data sheet are supported.  
+
+This has been developed in Python 2.7 32-bit on Windows 7 64-bit.  I will try to test
+on Linux, but don't expect issues.  All that I'm doing is pretty vanilla Python.
+
+It IS NOT currently compatible with Python 3.  I know the __init__.py import 
+needs changed and I believe some of the bytearray style handling needs to be updated.
+This is not currently a priority, but willing to accept pull requests.
 
 ## Possible Program Mode Timing Issues
 Note: When using program mode, I have noticed on both of my TekPower 3710A 
