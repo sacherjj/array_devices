@@ -556,7 +556,7 @@ class Load(object):
         self.__set_checksum()
         self.__send_buffer()
 
-    def start_program(self):
+    def start_program(self, turn_on_load=True):
         """
         Starts running programmed test sequence
         :return: None
@@ -565,10 +565,10 @@ class Load(object):
         self.__set_checksum()
         self.__send_buffer()
         # Turn on Load if not on
-        if not self.load_on:
+        if turn_on_load and not self.load_on:
             self.load_on = True
 
-    def stop_program(self):
+    def stop_program(self, turn_off_load=True):
         """
         Stops running programmed test sequence
         :return: None
@@ -576,7 +576,7 @@ class Load(object):
         self.__set_buffer_start(self.CMD_STOP_PROG)
         self.__set_checksum()
         self.__send_buffer()
-        if self.load_on:
+        if turn_off_load and self.load_on:
             self.load_on = False
 
 
