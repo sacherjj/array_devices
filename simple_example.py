@@ -80,7 +80,7 @@ load.set_load_current(0.001)
 time.sleep(2)
 
 # Turn load off
-print("Turing load off.")
+print("Turning load off.")
 load.load_on = False
 time.sleep(2)
 
