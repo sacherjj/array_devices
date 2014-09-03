@@ -3,6 +3,8 @@ import struct
 import ctypes
 import binascii
 
+__author__ = 'Joe Sacher'
+
 
 class ProgramStep(object):
     """
@@ -63,7 +65,7 @@ class ProgramStep(object):
         return self._setting, self._duration
 
 
-class Array3710Program(object):
+class Program(object):
     """
     Represents a 10 step program for the load
     """
@@ -169,7 +171,7 @@ class Array3710Program(object):
         struct.pack_into("< B x", out_buffer, 23, self._program_mode)
 
 
-class Array3710(object):
+class Load(object):
     """
     Handles remote control of Array 3710A DC Electronic Load.
     Also sold under Gossen, Tekpower, Circuit Specialists with same 3710A model number.
@@ -386,7 +388,6 @@ class Array3710(object):
         if new_val != self._load_on:
             self._load_on = new_val
             self.__set_load_state()
-            self.update_status()
 
     def __set_buffer_start(self, command):
         """
@@ -538,7 +539,6 @@ class Array3710(object):
         self.STRUCT_LOAD_STATE.pack_into(self.__out_buffer, self.OFFSET_PAYLOAD, flags)
         self.__set_checksum()
         self.__send_buffer()
-        self.update_status()
 
     def set_program_sequence(self, array_program):
         """
@@ -567,7 +567,6 @@ class Array3710(object):
         # Turn on Load if not on
         if not self.load_on:
             self.load_on = True
-        self.update_status()
 
     def stop_program(self):
         """
@@ -579,7 +578,6 @@ class Array3710(object):
         self.__send_buffer()
         if self.load_on:
             self.load_on = False
-        self.update_status()
 
 
 class SerialTester(object):
@@ -657,7 +655,7 @@ class SerialTester(object):
             else:
                 response = self.__read_buffer
                 self.__read_buffer = ''
-            print("Serial read, standard 0x91 data")
+            print("Serial read, hard coded 0x91 data")
             return response
         print("Serial read when no data available, timing out then returning ''")
         time.sleep(self.timeout)
@@ -669,39 +667,27 @@ class SerialTester(object):
 if __name__ == '__main__':
 
     import time
-    import serial
-    serial_conn = serial.Serial('COM4', 19200, timeout=1)
-#    serial_conn = SerialTester('COM4', 19200, timeout=1)
-    load = Array3710(0, serial_conn)
-    load.remote_control = True
-    load.max_power = 12
-    load.set_load_current(2)
-    print("Load Current: 2")
-    load.load_on = True
-    print("Load On")
-    load.update_status()
-    time.sleep(2)
-    load.load_on = False
-    print("Load Off")
 
-    print("Loading Program")
-    prog = Array3710Program(Array3710Program.PROG_TYPE_RESISTANCE, Array3710Program.RUN_ONCE)
+    serial_conn = SerialTester('COM4', 9600, timeout=1)
+    test_load = Load(0, serial_conn)
+    test_load.remote_control = True
+    test_load.set_load_current(10)
+    test_load.set_load_power(20)
+    test_load.set_load_resistance(30)
+    test_load.update_status()
+    test_load.load_on = True
+    test_load.load_off = True
+
+    # Enter Program
+    prog = Program(Program.PROG_TYPE_RESISTANCE, Program.RUN_ONCE)
     resistances = (500, 450, 400, 350, 300, 250, 200, 150, 100, 50)
     for resist in resistances:
         prog.add_step(resist, 10)
-    load.set_program_sequence(prog)
-    print("Running Program")
-    print("Expected 10 second delays and seeing only 7 second delays.  Odd.")
-    load.load_on = True
-    load.start_program()
-    for resist in resistances:
-        print("{} ohms".format(resist))
-        for i in range(7):
-            print i+1
-            time.sleep(1)
-    load.stop_program()
-# 11th step error
-#     prog.add_step(110, 110)
+    test_load.set_program_sequence(prog)
+    test_load.load_on = True
+    test_load.start_program()
+    time.sleep(1)
+    test_load.stop_program()
 
-    load.remote_control = False
+    test_load.remote_control = False
     serial_conn.close()
