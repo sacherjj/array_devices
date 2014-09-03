@@ -35,15 +35,15 @@ See simple_example.py for doing basic interfacing with load.
 
 ## Programming Load
 
-See programming_example.py for sendin a program to the load and running it.
+See programming_example.py for sending a program to the load and running it.
 
 ## Multiple Loads with Single USB Port
 The DB9 cable from the Load to the 3312 TTL Serial to USB adaptor has the following pinout:
 
-1 - 3.3V
-2 - TX (from Computer)
-3 - RX (from Load)
-5 - GND
+1. 3.3V
+2. TX (from Computer)
+3. RX (from Load)
+5. GND
 
 All other pins are not connected.
 
@@ -59,17 +59,17 @@ To daisy chain loads on the TTL side, you need to make a custom splitter.  The p
 load will provide power for the 3312 adaptor, and MUST be on to communicate to any of the
 other loads.  Pinout for this connection is the full 4 connections:
 
-1 - 3.3V
-2 - TX
-3 - RX
-5 - GND
+1. 3.3V
+2. TX
+3. RX
+5. GND
 
 All secondary loads connected should use this:
 
-1 - NOT CONNECTED
-2 - TX
-3 - RX
-5 - GND
+1. NOT CONNECTED
+2. TX
+3. RX
+5. GND
 
 I only have 2 loads connected in this manner, but you should be able to connect as many
 as you want, until you reach a noise threshold due to cable lengths.  Just make sure to 
@@ -77,4 +77,4 @@ set the addresses to unique values.
 
 ## Talking to Multiple Loads
 
-See miltiple_loads_example.py for talking with multiple loads on one USB port.
+See multiple_loads_example.py for talking with multiple loads on one USB port.
