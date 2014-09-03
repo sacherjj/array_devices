@@ -31,11 +31,11 @@ USB serial connection that you provide to initialize the Array3710 object.
 
 ## Simple Example
 
-See [simple_example.py](https://github.com/sacherjj/array3710/blob/master/simple_example.py) for doing basic interfacing with load.
+See [simple_example.py](https://github.com/sacherjj/array_devices/blob/master/simple_example.py) for doing basic interfacing with load.
 
 ## Programming Load
 
-See [programming_example.py](https://github.com/sacherjj/array3710/blob/master/programming_example.py) for sending a program to the load and running it.
+See [programming_example.py](https://github.com/sacherjj/array_devices/blob/master/programming_example.py) for sending a program to the load and running it.
 
 ## Multiple Loads with Single USB Port
 The DB9 cable from the Load to the 3312 TTL Serial to USB adaptor has the following pinout:
@@ -77,4 +77,4 @@ set the addresses to unique values.
 
 ## Talking to Multiple Loads
 
-See [multiple_loads_example.py](https://github.com/sacherjj/array3710/blob/master/multiple_loads_example.py) for talking with multiple loads on one USB port.
+See [multiple_loads_example.py](https://github.com/sacherjj/array_devices/blob/master/multiple_loads_example.py) for talking with multiple loads on one USB port.
