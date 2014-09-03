@@ -501,7 +501,7 @@ class Load(object):
             try:
                 self.__update_status()
             except IOError as err:
-                print "IOError: {}".format(err)
+                print("IOError: {}".format(err))
             else:
                 if self.__in_buffer.raw[-1] != chr(self.__get_checksum(self.__in_buffer.raw)):
                     raise IOError("Checksum validation failed.")

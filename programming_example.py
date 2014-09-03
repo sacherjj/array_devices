@@ -3,7 +3,8 @@ __author__ = 'Joe Sacher'
 try:
     import serial
 except ImportError as err:
-    print("ImportError: {}.\nIs pySerial package installed?".format(err))
+    import sys
+    sys.exit("ImportError: {}.\nIs pySerial package installed?".format(err))
 
 from array_devices import array3710
 import time
@@ -46,7 +47,7 @@ load.start_program(False)
 for resist in resistances:
     print("{} ohms".format(resist))
     for i in range(7):
-        print i+1
+        print(i+1)
         time.sleep(1)
 print("Now I'll wait for 5 seconds as the program starts to repeat, before stopping it.")
 time.sleep(5)

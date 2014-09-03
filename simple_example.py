@@ -3,7 +3,9 @@ __author__ = 'Joe Sacher'
 try:
     import serial
 except ImportError as err:
-    print("ImportError: {}.\nIs pySerial package installed?".format(err))
+    import sys
+    sys.exit("ImportError: {}.\nIs pySerial package installed?".format(err))
+
 
 from array_devices import array3710
 import time
