@@ -211,7 +211,7 @@ class Load(object):
     OFFSET_PAYLOAD = 3
     OFFSET_CHECKSUM = 25
 
-    def __init__(self, address, serial_connection):
+    def __init__(self, address, serial_connection, print_errors=True):
         """
         Require passing in serial_connection, because multiple Loads can exist
         with different addresses on a single serial port.
@@ -242,6 +242,7 @@ class Load(object):
         self.excessive_temp = 0
         self.excessive_voltage = 0
         self.excessive_power = 0
+        self.print_errors = print_errors
         self.update_status()
 
     # Note: Internally, all values are stored as integer values
@@ -474,7 +475,7 @@ class Load(object):
         self.__send_buffer()
         self.update_status()
 
-    def update_status(self, retry_count=3):
+    def update_status(self, retry_count=2):
         """
         Updates current values from load.
         Must be called to get latest values for the following properties of class:
@@ -496,15 +497,17 @@ class Load(object):
         """
         # I think retry should be in here.
         # Throw exceptions in __update_status and handle here
-        cur_count = max(retry_count, 1)
-        while cur_count > 0:
+        cur_count = max(retry_count, 0)
+        while cur_count >= 0:
             try:
                 self.__update_status()
             except IOError as err:
-                print("IOError: {}".format(err))
+                if self.print_errors:
+                    print("IOError: {}".format(err))
             else:
                 if self.__in_buffer.raw[-1] != chr(self.__get_checksum(self.__in_buffer.raw)):
-                    raise IOError("Checksum validation failed.")
+                    if self.print_errors:
+                        raise IOError("Checksum validation failed.")
                 values = self.STRUCT_READ_VALUES_IN.unpack_from(self.__in_buffer, self.OFFSET_FRONT)
                 (self._current,
                  self._voltage,
