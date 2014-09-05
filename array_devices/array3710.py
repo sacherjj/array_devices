@@ -1,22 +1,43 @@
 from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+
 import struct
 import ctypes
 import binascii
+import sys
 
 __author__ = 'Joe Sacher'
+
+# Set flags for Python Major Versions
+PY2 = sys.version_info[0] == 2
+PY3 = sys.version_info[0] == 3
+
+
+def byte2int(value):
+    """
+    Python 3 gets int from bytestring, Python 2 required ord.
+    This abstracts that difference away.
+
+    :param value: single value from byte string
+    :return: int of value
+    """
+    if PY2:
+        return ord(value)
+    return value
 
 
 class ProgramStep(object):
     """
     Represents a single step in an Array3710Program
     """
-
     # Max Settings based on PROG_TYPE modes as index
     # 1: 30A, 2: 200W, 3: 500ohms
     MAX_SETTINGS = (0, 30, 200, 500)
+    # Display units
     SETTING_UNITS = ('', 'amps', 'watts', 'ohms')
     # Conversions between internal and external representations.
-    # 1: 30A -> 30000, 2: 200W -> 2000, 3: 500ohms -> 50000
+    # 1: 30000 -> 30A, 2: 2000 -> 200W, 3: 50000 -> 500ohms
     SETTING_DIVIDES = (1, 1000, 10, 100)
 
     def __init__(self, program, setting=0, duration=0):
@@ -155,10 +176,10 @@ class Program(object):
         Loads first program buffer (0x93) with everything but
         first three bytes and checksum
         """
-        struct.pack_into("< 2B", out_buffer, 3, self._program_type, len(self._prog_steps))
+        struct.pack_into(b"< 2B", out_buffer, 3, self._program_type, len(self._prog_steps))
         offset = 5
         for ind, step in enumerate(self.partial_steps_data(0)):
-            struct.pack_into("< 2H", out_buffer, offset + ind*4, step[0], step[1])
+            struct.pack_into(b"< 2H", out_buffer, offset + ind*4, step[0], step[1])
 
     def load_buffer_six_to_ten(self, out_buffer):
         """
@@ -167,8 +188,8 @@ class Program(object):
         """
         offset = 3
         for ind, step in enumerate(self.partial_steps_data(5)):
-            struct.pack_into("< 2H", out_buffer, offset + ind*4, step[0], step[1])
-        struct.pack_into("< B x", out_buffer, 23, self._program_mode)
+            struct.pack_into(b"< 2H", out_buffer, offset + ind*4, step[0], step[1])
+        struct.pack_into(b"< B x", out_buffer, 23, self._program_mode)
 
 
 class Load(object):
@@ -195,16 +216,16 @@ class Load(object):
     FRAME_LENGTH = 26
 
     # Description of data structures for various packet types
-    STRUCT_FRONT = struct.Struct('< 3B 23x')
-    STRUCT_SET_PARAMETERS = struct.Struct('< 2H 2B H 14x')
-    STRUCT_READ_VALUES_OUT = struct.Struct('< 22x')
-    STRUCT_READ_VALUES_IN = struct.Struct('< 3B H I 4H B 7x B')
-    STRUCT_LOAD_STATE = struct.Struct('< B 21x')
-    STRUCT_DEFINE_PROG_LOW = struct.Struct('< 2B 10H')
-    STRUCT_DEFINE_PROG_HIGH = struct.Struct('< 10H B x')
-    STRUCT_START_PROGRAM = struct.Struct('< 22x')
-    STRUCT_STOP_PROGRAM = struct.Struct('< 22x')
-    STRUCT_CHECKSUM = struct.Struct('< B')
+    STRUCT_FRONT = struct.Struct(b'< 3B 23x')
+    STRUCT_SET_PARAMETERS = struct.Struct(b'< 2H 2B H 14x')
+    STRUCT_READ_VALUES_OUT = struct.Struct(b'< 22x')
+    STRUCT_READ_VALUES_IN = struct.Struct(b'< 3B H I 4H B 7x B')
+    STRUCT_LOAD_STATE = struct.Struct(b'< B 21x')
+    STRUCT_DEFINE_PROG_LOW = struct.Struct(b'< 2B 10H')
+    STRUCT_DEFINE_PROG_HIGH = struct.Struct(b'< 10H B x')
+    STRUCT_START_PROGRAM = struct.Struct(b'< 22x')
+    STRUCT_STOP_PROGRAM = struct.Struct(b'< 22x')
+    STRUCT_CHECKSUM = struct.Struct(b'< B')
 
     # Offsets for packing partial structs
     OFFSET_FRONT = 0
@@ -408,7 +429,7 @@ class Load(object):
         :param byte_str: string to checksum, plus extra character on end
         :return: checksum value as int
         """
-        return sum(ord(x) for x in byte_str[:-1]) % 256
+        return sum(byte2int(x) for x in byte_str[:-1]) % 256
 
     def __set_checksum(self):
         """
@@ -419,12 +440,20 @@ class Load(object):
         checksum = self.__get_checksum(self.__out_buffer.raw)
         self.STRUCT_CHECKSUM.pack_into(self.__out_buffer, self.OFFSET_CHECKSUM, checksum)
 
+    def __is_valid_checksum(self, byte_str):
+        """
+        Verifies last byte checksum of full packet
+        :param byte_str: byte string message
+        :return: boolean
+        """
+        return byte2int(byte_str[-1]) == self.__get_checksum(byte_str)
+
     def __clear_in_buffer(self):
         """
         Zeros out the in buffer
         :return: None
         """
-        self.__in_buffer.value = '\0' * len(self.__in_buffer)
+        self.__in_buffer.value = bytes(b'\0' * len(self.__in_buffer))
 
     def __send_buffer(self):
         """
@@ -453,7 +482,7 @@ class Load(object):
         if len(read_string) != len(self.__in_buffer):
             raise IOError("{} bytes received for input buffer of size {}".format(len(read_string),
                                                                                  len(self.__in_buffer)))
-        if read_string[-1] != chr(self.__get_checksum(read_string)):
+        if not self.__is_valid_checksum(read_string):
             raise IOError("Checksum validation failed on received data")
         self.__in_buffer.value = read_string
 
@@ -505,7 +534,7 @@ class Load(object):
                 if self.print_errors:
                     print("IOError: {}".format(err))
             else:
-                if self.__in_buffer.raw[-1] != chr(self.__get_checksum(self.__in_buffer.raw)):
+                if not self.__is_valid_checksum(self.__in_buffer.raw):
                     if self.print_errors:
                         raise IOError("Checksum validation failed.")
                 values = self.STRUCT_READ_VALUES_IN.unpack_from(self.__in_buffer, self.OFFSET_FRONT)
@@ -591,6 +620,7 @@ class SerialTester(object):
     def __init__(self, port=None, baudrate=9600, bytesize=8, parity='N',
                  stopbits=1, timeout=None, xonxoff=False, rtscts=False,
                  writeTimeout=None, dsrdtr=False, interCharTimeout=None):
+        self.timeout = timeout
         if not timeout:
             self.timeout = 0
         print("Faking Serial")
@@ -615,14 +645,14 @@ class SerialTester(object):
         :param data_str: 26 byte string of packet data
         :return: tuple packed with valid data in string
         """
-        structs = {0x90: "< 3B 2H 2B H 14x B",
-                   0x91: "< 3B 22x B",
-                   0x92: "< 3B B 21x B",
-                   0x93: "< 3B 2B 10H B",
-                   0x94: "< 3B 10H B x B",
-                   0x95: "< 3B 22x B",
-                   0x96: "< 3B 22x B"}
-        cmd_code = ord(data_str[2])
+        structs = {0x90: b"< 3B 2H 2B H 14x B",
+                   0x91: b"< 3B 22x B",
+                   0x92: b"< 3B B 21x B",
+                   0x93: b"< 3B 2B 10H B",
+                   0x94: b"< 3B 10H B x B",
+                   0x95: b"< 3B 22x B",
+                   0x96: b"< 3B 22x B"}
+        cmd_code = byte2int(data_str[2])
         return struct.unpack(structs[cmd_code], data_str)
 
     def write(self, data_str):
@@ -633,9 +663,9 @@ class SerialTester(object):
         :param data_str: string to write
         :return: number of bytes given
         """
-        if ord(data_str[2]) == 0x91:
-            self.__read_buffer = ("\xAA\x00\x91\x00\x00\x00\x00\x00\x00\x00\x00\x30\x75"
-                                  "\xD0\x07\x50\xC3\x00\x01\x00\x00\x00\x00\x50\xC3\xDE")
+        cmd_code = byte2int(data_str[2])
+        if cmd_code == 0x91:
+            self.__read_buffer = b'\xAA\x00\x91\x00\x00\x00\x00\x00\x00\x00\x00\x30\x75\xD0\x07\x50\xC3\x00\x01\x00\x00\x00\x00\x50\xC3\xDE'
         print("Serial Write: ", binascii.hexlify(data_str))
         print(self.__decode_message(data_str))
         return len(data_str)
