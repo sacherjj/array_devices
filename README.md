@@ -6,12 +6,8 @@ This load is also sold under Gossen, Tekpower, Circuit Specialists with same 371
 
 All capabilities in programming data sheet are supported.  
 
-This has been developed in Python 2.7 32-bit on Windows 7 64-bit.  I will try to test
-on Linux, but don't expect issues.  All that I'm doing is pretty vanilla Python.
-
-It IS NOT currently compatible with Python 3.  I know the __init__.py import 
-needs changed and I believe some of the bytearray style handling needs to be updated.
-This is not currently a priority, but willing to accept pull requests.
+This has been developed in Python 2.7 32-bit and Python 3.3 32-bit 
+on Windows 7 64-bit.  I will try to test on Linux, but don't expect issues.  
 
 ## Possible Program Mode Timing Issues
 Note: When using program mode, I have noticed on both of my TekPower 3710A 
@@ -82,6 +78,11 @@ All secondary loads connected should use this:
 I only have 2 loads connected in this manner, but you should be able to connect as many
 as you want, until you reach a noise threshold due to cable lengths.  Just make sure to 
 set the addresses to unique values.
+
+Note: I am seeing some backfeeding from the pull up on the signal lines.  This is causing
+the beeper on the secondary load to stay beeping when turned off.  This is not a problem if
+all loads are powered around the same time.  The best method to join loads would be multiple
+optoisolator pairs from one USB to RS232 TLL board.
 
 ## Talking to Multiple Loads
 
