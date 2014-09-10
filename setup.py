@@ -10,14 +10,10 @@ except:
 
 import os.path
 
-version = os.path.join(os.path.dirname(__file__), 'VERSION')
-with open(version, 'r') as f:
-    version = f.readline().rstrip()
-
 setup(
     name = 'array_devices',
     description = 'Python Interface for Array Electronic Load',
-    version = version,
+    version = '1.0.1',
     long_description = '''This package is a Python-based interface for the Array 3710 Electronic Load.''',
     author = 'Joe Sacher',
     author_email = 'sacherjj@gmail.com',
