@@ -1,1 +1,1 @@
-from array3710 import Load, Program, ProgramStep
+from .array3710 import Load, Program, ProgramStep
