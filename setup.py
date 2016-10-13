@@ -13,7 +13,7 @@ import os.path
 setup(
     name = 'array_devices',
     description = 'Python Interface for Array Electronic Load',
-    version = '1.0.1',
+    version = '1.0.2',
     long_description = '''This package is a Python-based interface for the Array 3710 Electronic Load.''',
     author = 'Joe Sacher',
     author_email = 'sacherjj@gmail.com',
